@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <title>ads_stills: marco y texto</title>
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('ads_stills.theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
   <meta name="theme-color" content="#161616">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="ads_stills">
@@ -22,8 +30,12 @@
       <h1>@ads_stills</h1>
       <p class="soft">Marco y texto</p>
     </div>
-    <div class="ornaments" aria-hidden="true">
-      <span class="dial"></span><span class="lamp"></span><span class="flash"></span><span class="finder"></span>
+    <div class="ornaments">
+      <button type="button" id="themeSwitch" class="dial" role="switch" aria-checked="true" aria-label="Modo oscuro">
+        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.100 2.100M4.9 19.100L7 17M17 7l2.100-2.100"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.500 8.500 0 1 0 10.500 10.500z"/></svg>
+      </button>
+      <span class="lamp" aria-hidden="true"></span><span class="flash" aria-hidden="true"></span><span class="finder" aria-hidden="true"></span>
     </div>
     <button type="button" id="newPost">Nueva publicación</button>
     <p id="draftStatus" role="status"></p>

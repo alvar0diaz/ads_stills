@@ -19,6 +19,7 @@ import { decode, fromDraftImage, loadPhoto, openError, toDraftImage, type Photo 
 import { reframeKey, stripAction } from './keys';
 import { startServiceWorker } from './pwa';
 import { createSavePanel } from './save-panel';
+import { startTheme } from './theme';
 import { recall, remember } from './settings';
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -520,5 +521,6 @@ async function start(): Promise<void> {
 // El texto del lienzo vacío se repinta cuando llega la letra.
 document.fonts.load('44px Jost').then(() => current() || drawView(), () => {});
 
+startTheme(byId<HTMLButtonElement>('themeSwitch'));
 startServiceWorker(() => autosave.flush());
 void start();

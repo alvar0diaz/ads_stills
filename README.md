@@ -29,6 +29,10 @@ Las imágenes salen a 2160 × 2700, JPEG, como `ads_stills_01.jpg`, `02`…
 
 Para publicar, guarda las imágenes y súbelas a mano en Instagram.
 
+### Tema
+
+El dial de arriba a la derecha cambia entre plata (claro) y carbón (oscuro). Mientras no lo toques, o si lo devuelves al tema del dispositivo, la app sigue al sistema.
+
 ### Borrador y actualizaciones
 
 - El borrador se guarda solo y sobrevive a cerrar la app. «Nueva publicación» lo borra.

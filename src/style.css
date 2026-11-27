@@ -18,18 +18,16 @@
   --engraved: "Michroma", "Avenir Next", sans-serif;
   --text: "Jost", -apple-system, BlinkMacSystemFont, sans-serif;
 }
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-    --metal-hi: #e9e7e2; --metal: #d3d0ca; --metal-lo: #bbb7b0; --edge: #69645c;
-    --brush: rgb(255 255 255 / .22);
-    --field: #f6f4f0; --ink: #1b1916; --soft: #3b3731; --placeholder: #6a645b;
-    --key-hi: #f6f4f0; --key-lo: #c9c5bd; --key-ink: #1b1916; --key-shadow: #6f6a62;
-    --primary-hi: #46413c; --primary-lo: #1d1b19; --primary-ink: #f4f1ea; --primary-shine: rgb(255 255 255 / .2);
-    --pressed: #aaa59c; --shine: rgb(255 255 255 / .75); --engrave: 0 1px 0 rgb(255 255 255 / .7);
-    --knurl-hi: #f2f0ec; --knurl-lo: #55504a;
-    --mark: #a64700; --alert: #861f12;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
+  --metal-hi: #e9e7e2; --metal: #d3d0ca; --metal-lo: #bbb7b0; --edge: #69645c;
+  --brush: rgb(255 255 255 / .22);
+  --field: #f6f4f0; --ink: #1b1916; --soft: #3b3731; --placeholder: #6a645b;
+  --key-hi: #f6f4f0; --key-lo: #c9c5bd; --key-ink: #1b1916; --key-shadow: #6f6a62;
+  --primary-hi: #46413c; --primary-lo: #1d1b19; --primary-ink: #f4f1ea; --primary-shine: rgb(255 255 255 / .2);
+  --pressed: #aaa59c; --shine: rgb(255 255 255 / .75); --engrave: 0 1px 0 rgb(255 255 255 / .7);
+  --knurl-hi: #f2f0ec; --knurl-lo: #55504a;
+  --mark: #a64700; --alert: #861f12;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -68,13 +66,21 @@ header {
 }
 .brand { min-width: 0; }
 .ornaments { display: flex; align-items: center; gap: 10px; }
-.dial, .lamp, .flash, .finder { display: block; border: 1px solid var(--edge); }
-.dial {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: radial-gradient(circle, #4a4540 0 52%, transparent 53%),
-    repeating-conic-gradient(#8a847b 0 5deg, #2d2a27 5deg 10deg);
-  box-shadow: 0 2px 4px rgb(0 0 0 / .6);
+.lamp, .flash, .finder { display: block; border: 1px solid var(--edge); }
+/* El dial cambia de tema: gira media vuelta y enseña sol o luna. */
+.ornaments .dial {
+  position: relative; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0;
+  border: 1px solid var(--edge); border-radius: 50%; background: none; box-shadow: 0 2px 4px rgb(0 0 0 / .6);
 }
+.dial::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; transition: transform .35s ease;
+  background: radial-gradient(circle, #35312d 0 60%, transparent 61%),
+    repeating-conic-gradient(#a39c91 0 5deg, #2d2a27 5deg 10deg);
+}
+.dial[aria-checked="false"]::before { transform: rotate(175deg); }
+.dial svg { position: relative; width: 20px; height: 20px; fill: none; stroke: var(--stamp); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.dial[aria-checked="true"] .sun, .dial[aria-checked="false"] .moon { display: none; }
+@media (prefers-reduced-motion: reduce) { .dial::before { transition: none; } }
 .lamp { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffd3a6, var(--stamp) 45%, #6d3305); }
 .flash {
   width: 34px; height: 30px; border-radius: 4px;
@@ -85,9 +91,9 @@ header {
   width: 46px; height: 38px; border-radius: 5px; box-shadow: inset 0 0 0 4px #0b0b0b;
   background: linear-gradient(135deg, #27343a 0 30%, #07090a 31% 62%, #17242a 63%);
 }
-header button { grid-column: 1 / -1; justify-self: start; }
+#newPost { grid-column: 1 / -1; justify-self: start; }
 /* En pantallas estrechas sobra adorno: el nombre debe caber entero. */
-@media (max-width: 369px) { .dial, .lamp { display: none; } }
+@media (max-width: 369px) { .lamp, .flash { display: none; } }
 header > p { grid-column: 1 / -1; color: var(--alert); font-size: .875rem; }
 
 .columns { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
@@ -107,7 +113,7 @@ button:disabled { opacity: .5; cursor: default; }
 }
 .pick { display: block; text-align: center; }
 .pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.pick:focus-within, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+.pick:focus-within, button:focus-visible, .ornaments .dial:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
 canvas:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .row > * { flex: 1 1 0; min-width: 90px; }
@@ -225,7 +231,7 @@ progress::-moz-progress-bar { background: #d6331f; }
 @media (min-width: 700px) and (min-height: 500px) {
   main { max-width: 1180px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   header { grid-template-columns: 1fr auto auto; padding: 12px 20px; }
-  header button { grid-column: auto; margin-left: 12px; }
+  #newPost { grid-column: auto; margin-left: 12px; }
   .columns { display: grid; grid-template-columns: minmax(0, 1fr) clamp(320px, 42%, 440px); align-items: start; }
   .columns > * { grid-column: 2; }
   /* Ocupa las filas de los siete bloques de la derecha. */

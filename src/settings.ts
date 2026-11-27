@@ -1,6 +1,6 @@
 /** Ajustes recordados. Si el almacenamiento falla, la app sigue funcionando. */
 
-type Key = 'margin' | 'cameras' | 'camera';
+type Key = 'margin' | 'cameras' | 'camera' | 'theme';
 
 export function recall(key: Key): string | null {
   try {
