@@ -1,3 +1,7 @@
+import '@fontsource/jost/latin-400.css';
+import '@fontsource/jost/latin-500.css';
+import '@fontsource/jost/latin-600.css';
+import '@fontsource/michroma/latin-400.css';
 import './style.css';
 import { Autosave } from './autosave';
 import { createCameraPanel } from './camera-panel';
@@ -42,11 +46,7 @@ const optionsFor = (photo: Photo): FrameOptions => ({
   position: photo.position,
 });
 
-const savePanel = createSavePanel({
-  photos: () => carousel.items,
-  margin,
-  caption: () => captionArea.value,
-});
+const savePanel = createSavePanel({ photos: () => carousel.items, margin });
 
 /** Cambio en las fotos o el marco: lo preparado deja de valer. */
 function photosChanged(): void {
@@ -60,7 +60,7 @@ function drawPlaceholder(text: string): void {
   drawFrame(view, null, { margin: margin(), original: false, position: 0.5 });
   const context = view.getContext('2d')!;
   context.fillStyle = '#777';
-  context.font = '44px -apple-system, sans-serif';
+  context.font = '44px Jost, -apple-system, sans-serif';
   context.textAlign = 'center';
   context.fillText(text, view.width / 2, view.height / 2);
 }
@@ -516,6 +516,9 @@ async function start(): Promise<void> {
   // Pide que el sistema no borre el borrador; puede denegarlo.
   navigator.storage?.persist?.().catch(() => {});
 }
+
+// El texto del lienzo vacío se repinta cuando llega la letra.
+document.fonts.load('44px Jost').then(() => current() || drawView(), () => {});
 
 startServiceWorker(() => autosave.flush());
 void start();

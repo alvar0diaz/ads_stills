@@ -68,20 +68,3 @@ export async function downloadFiles(files: File[], pause = 350): Promise<void> {
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   }
 }
-
-type InstagramNavigator = ShareNavigator & { clipboard?: Pick<Clipboard, 'writeText'> };
-
-/**
- * No existe una vía web para abrir Instagram con un carrusel montado: se copia la
- * descripción y se abre el menú de compartir. Ambas cosas arrancan en el mismo
- * toque, sin esperas entre medias.
- */
-export function sendToInstagram(files: File[], caption: string, nav: InstagramNavigator) {
-  let copied: Promise<boolean>;
-  try {
-    copied = nav.clipboard!.writeText(caption).then(() => true, () => false);
-  } catch {
-    copied = Promise.resolve(false);
-  }
-  return { copied, shared: shareFiles(files, nav) };
-}

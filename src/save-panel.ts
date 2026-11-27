@@ -1,11 +1,10 @@
 /** Sección «Guardar»: primero se generan los JPEG y después se comparten con un toque. */
 import { exportPhoto, type Photo } from './images';
-import { canShareFiles, downloadFiles, prefersShare, sendToInstagram, shareFiles, toFiles } from './share';
+import { canShareFiles, downloadFiles, prefersShare, shareFiles, toFiles } from './share';
 
 interface Source {
   photos: () => Photo[];
   margin: () => number;
-  caption: () => string;
 }
 
 export interface SavePanel {
@@ -23,13 +22,7 @@ export function createSavePanel(source: Source): SavePanel {
   const downloadAll = byId<HTMLButtonElement>('downloadAll');
   const outputs = byId('outputs');
   const progress = byId<HTMLProgressElement>('progress');
-  const toInstagram = byId<HTMLButtonElement>('toInstagram');
-  const instagramStatus = byId('instagramStatus');
   const useShare = prefersShare(navigator);
-
-  byId('phoneSteps').hidden = !useShare;
-  byId('desktopSteps').hidden = useShare;
-  if (!useShare) byId('instagramSummary').textContent = 'Cómo publicarlo desde este ordenador';
 
   /** Cambia con cada invalidación; una preparación antigua se abandona. */
   let version = 0;
@@ -48,8 +41,7 @@ export function createSavePanel(source: Source): SavePanel {
     urls = [];
     outputs.replaceChildren();
     results.hidden = true;
-    shareAll.onclick = downloadAll.onclick = toInstagram.onclick = null;
-    instagramStatus.textContent = '';
+    shareAll.onclick = downloadAll.onclick = null;
     if (!source.photos().length) status.textContent = '';
     else if (had) status.textContent = 'Has cambiado las fotos o el marco: prepáralas de nuevo.';
     refresh();
@@ -69,18 +61,6 @@ export function createSavePanel(source: Source): SavePanel {
       : `${files.length} descargas iniciadas. Si el navegador pide permiso para descargar varias, acéptalo.`;
   }
 
-  async function instagram(files: File[]): Promise<void> {
-    const { copied, shared } = sendToInstagram(files, source.caption(), navigator);
-    const [ok, result] = await Promise.all([copied, shared]);
-    const text = ok
-      ? 'Descripción copiada.'
-      : 'No se pudo copiar la descripción: usa «Copiar descripción».';
-    const next = result.status === 'shared'
-      ? 'Sigue en Instagram y pega la descripción.'
-      : result.status === 'cancelled' ? 'Envío cancelado.' : result.message;
-    instagramStatus.textContent = `${text} ${next}`;
-  }
-
   function show(files: File[]): void {
     const shareable = canShareFiles(files, navigator);
     const shareFirst = useShare && shareable;
@@ -95,9 +75,6 @@ export function createSavePanel(source: Source): SavePanel {
     downloadAll.textContent = `Descargar todas (${count})`;
     downloadAll.classList.toggle('primary', !shareFirst);
     downloadAll.onclick = () => void download(files);
-
-    toInstagram.hidden = !shareFirst;
-    toInstagram.onclick = () => void instagram(files);
 
     outputs.replaceChildren(
       ...files.map((file, i) => {

@@ -1,45 +1,63 @@
 /*
-  Aspecto: una cámara compacta color carbón. Cuero granulado de fondo, placas de
-  metal para los ajustes y un solo color vivo, el naranja del fechador.
-  Solo fuentes del sistema: la app funciona sin red.
+  Aspecto: una cámara compacta. De noche, color carbón; de día, plateada con el
+  mismo cuero negro. El naranja del fechador es el único color vivo.
+  Letras: Michroma, de aire grabado años 60, para rótulos; Jost, geométrica, para
+  lo demás. Van incluidas en la app.
 */
 :root {
   color-scheme: dark;
   --leather: #161616;
   --metal-hi: #4e4944; --metal: #443f3b; --metal-lo: #36322f; --edge: #171514;
-  --field: #211f1d; --ink: #efebe3; --soft: #c9c3b9;
-  --silver-hi: #ebe7df; --silver-lo: #b7b1a7; --silver-ink: #1b1917;
-  --stamp: #ff9a3c; --alert: #ffbcae;
-  --engraved: "DIN Alternate", "Avenir Next", "Helvetica Neue", sans-serif;
+  --brush: rgb(255 255 255 / .015);
+  --field: #211f1d; --ink: #efebe3; --soft: #c9c3b9; --placeholder: #a39c92;
+  --key-hi: #575149; --key-lo: #36322e; --key-ink: #efebe3; --key-shadow: #100f0e;
+  --primary-hi: #ebe7df; --primary-lo: #b7b1a7; --primary-ink: #1b1917; --primary-shine: #fff;
+  --pressed: #25221f; --shine: rgb(255 255 255 / .17); --engrave: 0 -1px 0 rgb(0 0 0 / .7);
+  --knurl-hi: #ebe7df; --knurl-lo: #827c73;
+  --stamp: #ff9a3c; --mark: #ff9a3c; --alert: #ffbcae;
+  --engraved: "Michroma", "Avenir Next", sans-serif;
+  --text: "Jost", -apple-system, BlinkMacSystemFont, sans-serif;
 }
-/* De día, el mismo carbón con la placa algo más clara. */
 @media (prefers-color-scheme: light) {
-  :root { --metal-hi: #645e58; --metal: #59544e; --metal-lo: #4b4641; --field: #302d2a; --soft: #e4dfd6; }
+  :root {
+    color-scheme: light;
+    --metal-hi: #e9e7e2; --metal: #d3d0ca; --metal-lo: #bbb7b0; --edge: #69645c;
+    --brush: rgb(255 255 255 / .22);
+    --field: #f6f4f0; --ink: #1b1916; --soft: #3b3731; --placeholder: #6a645b;
+    --key-hi: #f6f4f0; --key-lo: #c9c5bd; --key-ink: #1b1916; --key-shadow: #6f6a62;
+    --primary-hi: #46413c; --primary-lo: #1d1b19; --primary-ink: #f4f1ea; --primary-shine: rgb(255 255 255 / .2);
+    --pressed: #aaa59c; --shine: rgb(255 255 255 / .75); --engrave: 0 1px 0 rgb(255 255 255 / .7);
+    --knurl-hi: #f2f0ec; --knurl-lo: #55504a;
+    --mark: #a64700; --alert: #861f12;
+  }
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { background: var(--leather) url("./assets/leather.png") repeat; background-size: 128px; }
-body { margin: 0; color: var(--ink); font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+body { margin: 0; color: var(--ink); font: 17px/1.45 var(--text); }
 main {
   max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
   padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
     calc(56px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
 }
-h1, h2, h3 { font-family: var(--engraved); font-weight: 700; margin: 0; text-shadow: 0 -1px 0 rgb(0 0 0 / .7); }
-h1 { font-size: 1.75rem; line-height: 1.1; letter-spacing: .02em; }
-h2 { font-size: 1.15rem; line-height: 1.2; letter-spacing: .03em; }
-h3 { font-size: 1rem; }
+h1, h2 { font-family: var(--engraved); font-weight: 400; margin: 0; text-shadow: var(--engrave); }
+h1 { font-size: 1.1rem; line-height: 1.3; }
+h2 { font-size: .85rem; line-height: 1.4; letter-spacing: .02em; }
 p { margin: 0; }
 p:empty { display: none; }
-.soft { color: var(--soft); font-size: .875rem; }
+.soft { color: var(--soft); font-size: .9rem; }
 
 /* ---------- Placas de metal ---------- */
 section, header, dialog {
-  background: url("./assets/grain.png"), linear-gradient(180deg, var(--metal-hi), var(--metal) 35%, var(--metal-lo));
-  background-size: 64px, 100% 100%;
-  background-blend-mode: soft-light, normal;
+  /* Grano, cepillado horizontal y la caída de luz de la placa. */
+  background: url("./assets/grain.png"),
+    repeating-linear-gradient(180deg, var(--brush) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--metal-hi), var(--metal) 35%, var(--metal-lo));
+  background-size: 64px, auto, 100% 100%;
+  background-blend-mode: soft-light, normal, normal;
+  color: var(--ink);
   border: 1px solid var(--edge); border-radius: 12px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / .16), inset 0 -1px 0 rgb(0 0 0 / .35), 0 5px 14px rgb(0 0 0 / .55);
+  box-shadow: inset 0 1px 0 var(--shine), inset 0 -1px 0 rgb(0 0 0 / .35), 0 5px 14px rgb(0 0 0 / .55);
 }
 section { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 
@@ -68,32 +86,33 @@ header {
   background: linear-gradient(135deg, #27343a 0 30%, #07090a 31% 62%, #17242a 63%);
 }
 header button { grid-column: 1 / -1; justify-self: start; }
+/* En pantallas estrechas sobra adorno: el nombre debe caber entero. */
+@media (max-width: 369px) { .dial, .lamp { display: none; } }
 header > p { grid-column: 1 / -1; color: var(--alert); font-size: .875rem; }
 
 .columns { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 
 /* ---------- Teclas ---------- */
-button, .pick, select, .link-button {
-  font: inherit; min-height: 44px; padding: 8px 14px; border-radius: 8px; color: var(--ink); cursor: pointer;
-  border: 1px solid var(--edge); background: linear-gradient(180deg, #575149, #36322e);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / .18), 0 2px 0 #100f0e;
+button, .pick, select {
+  font: inherit; min-height: 44px; padding: 8px 14px; border-radius: 8px; color: var(--key-ink); cursor: pointer;
+  border: 1px solid var(--edge); background: linear-gradient(180deg, var(--key-hi), var(--key-lo));
+  box-shadow: inset 0 1px 0 var(--shine), 0 2px 0 var(--key-shadow);
 }
-button:active:not(:disabled), .pick:active, .link-button:active { transform: translateY(2px); box-shadow: inset 0 2px 4px rgb(0 0 0 / .5); }
+button:active:not(:disabled), .pick:active { transform: translateY(2px); box-shadow: inset 0 2px 4px rgb(0 0 0 / .5); }
 button:disabled { opacity: .5; cursor: default; }
 .primary, .pick.primary {
-  background: linear-gradient(180deg, var(--silver-hi), var(--silver-lo)); color: var(--silver-ink); font-weight: 600;
-  box-shadow: inset 0 1px 0 #fff, 0 2px 0 #100f0e;
+  background: linear-gradient(180deg, var(--primary-hi), var(--primary-lo)); color: var(--primary-ink); font-weight: 600;
+  box-shadow: inset 0 1px 0 var(--primary-shine), 0 2px 0 var(--key-shadow);
 }
-.pick { display: block; text-align: center; font-size: 1rem; }
+.pick { display: block; text-align: center; }
 .pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.link-button { display: block; text-align: center; text-decoration: none; }
 .pick:focus-within, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
-canvas:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+canvas:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .row > * { flex: 1 1 0; min-width: 90px; }
 .toggle[aria-pressed="true"] {
-  background: #25221f; border-color: var(--stamp); font-weight: 600; box-shadow: inset 0 2px 5px rgb(0 0 0 / .6);
+  background: var(--pressed); border-color: var(--mark); font-weight: 600; box-shadow: inset 0 2px 5px rgb(0 0 0 / .6);
 }
 
 /* ---------- Visor y película ---------- */
@@ -106,7 +125,7 @@ canvas:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px soli
 #view.draggable { touch-action: none; cursor: grab; }
 .counter {
   align-self: center; padding: 1px 10px; border-radius: 4px; background: #0c0b0a; color: var(--stamp);
-  font: 700 .95rem/1.5 var(--engraved); font-variant-numeric: tabular-nums; letter-spacing: .08em;
+  font: 400 .75rem/2 var(--engraved); letter-spacing: .08em;
   text-shadow: 0 0 6px rgb(255 154 60 / .6);
 }
 /* Tira de negativos, con sus perforaciones. */
@@ -123,13 +142,13 @@ canvas:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px soli
 .strip canvas { width: 100%; height: 100%; display: block; }
 
 /* ---------- Campos y diales ---------- */
-label { display: flex; flex-direction: column; gap: 4px; font-size: .875rem; color: var(--soft); min-width: 0; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; color: var(--soft); min-width: 0; }
 input[type="text"], textarea, select {
-  font-family: inherit; font-size: 16px; line-height: 1.4; color: var(--ink); width: 100%; min-height: 44px; min-width: 0;
+  font-family: var(--text); font-size: 17px; line-height: 1.4; color: var(--ink); width: 100%; min-height: 44px; min-width: 0;
   background: var(--field); border: 1px solid var(--edge); border-radius: 8px; padding: 10px;
   box-shadow: inset 0 2px 5px rgb(0 0 0 / .5), 0 1px 0 rgb(255 255 255 / .1);
 }
-::placeholder { color: #a39c92; }
+::placeholder { color: var(--placeholder); }
 select {
   -webkit-appearance: none; appearance: none; padding-right: 32px;
   background-image: linear-gradient(45deg, transparent 50%, var(--soft) 50%), linear-gradient(135deg, var(--soft) 50%, transparent 50%);
@@ -143,20 +162,21 @@ input[type="range"]::-webkit-slider-runnable-track {
 input[type="range"]::-moz-range-track { height: 8px; border-radius: 4px; background: #100f0e; }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; width: 38px; height: 30px; margin-top: -11px; border-radius: 6px; border: 1px solid var(--edge);
-  background: repeating-linear-gradient(90deg, var(--silver-hi) 0 2px, #827c73 2px 4px); box-shadow: 0 2px 5px rgb(0 0 0 / .7);
+  background: repeating-linear-gradient(90deg, var(--knurl-hi) 0 2px, var(--knurl-lo) 2px 4px); box-shadow: 0 2px 5px rgb(0 0 0 / .7);
 }
 input[type="range"]::-moz-range-thumb {
   width: 38px; height: 30px; border-radius: 6px; border: 1px solid var(--edge);
-  background: repeating-linear-gradient(90deg, #ebe7df 0 2px, #827c73 2px 4px);
+  background: repeating-linear-gradient(90deg, var(--knurl-hi) 0 2px, var(--knurl-lo) 2px 4px);
 }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.errors { margin: 0; padding-left: 18px; color: var(--alert); font-size: .875rem; }
+.errors { margin: 0; padding-left: 18px; color: var(--alert); font-size: .9rem; }
 .errors:empty { display: none; }
-.notice { border-left: 3px solid var(--stamp); padding-left: 10px; font-size: .875rem; }
+.notice { border-left: 3px solid var(--mark); padding-left: 10px; font-size: .9rem; }
 footer { text-align: center; background: rgb(0 0 0 / .65); border-radius: 8px; padding: 8px; }
+footer.soft { color: #d8d3ca; }
 .update {
   position: sticky; top: env(safe-area-inset-top); z-index: 2; display: flex; gap: 10px; align-items: center;
-  justify-content: space-between; background: var(--metal); border: 2px solid var(--stamp); border-radius: 8px; padding: 10px;
+  justify-content: space-between; background: var(--metal); border: 2px solid var(--mark); border-radius: 8px; padding: 10px;
 }
 
 /* ---------- Mis cámaras ---------- */
@@ -179,10 +199,6 @@ progress::-moz-progress-bar { background: #d6331f; }
 #outputs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
 #outputs li { display: flex; flex-direction: column; gap: 10px; }
 #outputs img { width: 100%; height: auto; aspect-ratio: 4 / 5; display: block; background: #fff; }
-.instagram { border-top: 1px solid var(--edge); box-shadow: inset 0 1px 0 rgb(255 255 255 / .12); padding-top: 12px; }
-summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: .875rem; }
-details ol { margin: 0 0 12px; padding-left: 20px; font-size: .875rem; color: var(--soft); }
-
 /* ---------- Revelado: la imagen emerge del papel ---------- */
 .developing { animation: develop 2.4s cubic-bezier(.35, .1, .3, 1) both; }
 @keyframes develop {
@@ -201,7 +217,7 @@ details ol { margin: 0 0 12px; padding-left: 20px; font-size: .875rem; color: va
 }
 .drop-overlay {
   position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; pointer-events: none;
-  background: rgb(0 0 0 / .75); color: var(--stamp); border: 4px dashed var(--stamp); font: 700 1.6rem/1.2 var(--engraved);
+  background: rgb(0 0 0 / .75); color: var(--stamp); border: 4px dashed var(--stamp); font: 400 1.2rem/1.4 var(--engraved);
 }
 
 /* iPad y Mac: vista previa fija a la izquierda y ajustes a la derecha.

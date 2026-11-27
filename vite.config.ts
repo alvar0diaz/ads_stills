@@ -29,7 +29,7 @@ export default defineConfig(({ command, isPreview }) => ({
       },
       workbox: {
         // Todo lo que usa la app se guarda al instalar: funciona sin red.
-        globPatterns: ['**/*.{html,js,css,png,webmanifest}'],
+        globPatterns: ['**/*.{html,js,css,png,woff2,webmanifest}'],
         cleanupOutdatedCaches: true,
       },
     }),

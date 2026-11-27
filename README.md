@@ -1,6 +1,6 @@
 # ads_stills: marco y texto
 
-App web instalable (PWA) para preparar publicaciones de fotografía en iPhone, iPad y Mac: marco 4:5, descripción y envío de las imágenes. La publicación se termina a mano en Instagram.
+App web instalable (PWA) para preparar publicaciones de fotografía en iPhone, iPad y Mac: marco 4:5, descripción y guardado de las imágenes. La publicación se termina a mano en Instagram.
 
 **Web:** <https://alvar0diaz.github.io/ads_stills/>
 
@@ -23,17 +23,11 @@ Usa la app desde su icono. Cada instalación (y Safari por separado) tiene su pr
 2. **Elegir fotos** (en el Mac, también arrastrándolas). Hasta 20.
 3. Ordena, elige «Mi formato» o «Sin recorte», encuadra y ajusta el grosor del marco.
 4. Escribe la frase y los datos. Si retocas la descripción, no se pisa hasta que pulses «Regenerar».
-5. **Preparar fotos** y después guardar o enviar.
+5. **Preparar fotos** y después guardarlas.
 
 Las imágenes salen a 2160 × 2700, JPEG, como `ads_stills_01.jpg`, `02`…
 
-### Instagram
-
-Una web no puede crear un carrusel dentro de Instagram. La publicación automática exige cuenta profesional, un servidor y las fotos en una dirección pública.
-
-- En iPhone y iPad, **Enviar a Instagram** copia la descripción y abre el menú de compartir. Lo que Instagram acepte desde ese menú depende de Instagram.
-- Si no llegan todas: «Guardar todas», «Copiar descripción», abrir Instagram, crear una publicación con selección múltiple, elegir en orden y comprobar el formato 4:5.
-- En el Mac: descargar, copiar la descripción y crear la publicación en instagram.com.
+Para publicar, guarda las imágenes y súbelas a mano en Instagram.
 
 ### Borrador y actualizaciones
 
@@ -72,8 +66,10 @@ npm run dev
 | `src/caption.ts` | Descripción y etiquetas |
 | `src/cameras.ts`, `src/camera-panel.ts` | Cámaras guardadas |
 | `src/draft.ts`, `src/autosave.ts` | Borrador en IndexedDB |
-| `src/share.ts`, `src/save-panel.ts` | Compartir, descargar e Instagram |
-| `src/style.css`, `src/develop.ts` | Aspecto y animación de revelado |
+| `src/share.ts`, `src/save-panel.ts` | Compartir y descargar |
+| `src/style.css`, `src/develop.ts` | Aspecto (carbón de noche, plata de día) y animación de revelado |
+
+Letras incluidas en la app, con licencia libre SIL OFL: Michroma y Jost (paquetes `@fontsource`).
 
 ## Despliegue
 
