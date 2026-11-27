@@ -181,7 +181,7 @@ input[type="range"]::-moz-range-thumb {
 footer { text-align: center; background: rgb(0 0 0 / .65); border-radius: 8px; padding: 8px; }
 footer.soft { color: #d8d3ca; }
 .update {
-  position: sticky; top: env(safe-area-inset-top); z-index: 2; display: flex; gap: 10px; align-items: center;
+  position: sticky; top: env(safe-area-inset-top); z-index: 6; display: flex; gap: 10px; align-items: center;
   justify-content: space-between; background: var(--metal); border: 2px solid var(--mark); border-radius: 8px; padding: 10px;
 }
 
@@ -230,12 +230,20 @@ progress::-moz-progress-bar { background: #d6331f; }
    La altura mínima deja al iPhone apaisado en una columna. */
 @media (min-width: 700px) and (min-height: 500px) {
   main { max-width: 1180px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  /* La tapa se queda arriba; lo de la derecha pasa por debajo. */
+  .cap {
+    position: sticky; top: 0; z-index: 5;
+    margin-top: calc(-1 * max(14px, env(safe-area-inset-top)));
+    padding-top: max(14px, env(safe-area-inset-top));
+    background: var(--leather) url("./assets/leather.png") repeat; background-size: 128px;
+    box-shadow: 0 10px 12px -8px rgb(0 0 0 / .6);
+  }
   header { grid-template-columns: 1fr auto auto; padding: 12px 20px; }
   #newPost { grid-column: auto; margin-left: 12px; }
   .columns { display: grid; grid-template-columns: minmax(0, 1fr) clamp(320px, 42%, 440px); align-items: start; }
   .columns > * { grid-column: 2; }
   /* Ocupa las filas de los siete bloques de la derecha. */
-  .columns > .stage { grid-column: 1; grid-row: 1 / span 7; position: sticky; top: max(16px, env(safe-area-inset-top)); }
+  .columns > .stage { grid-column: 1; grid-row: 1 / span 7; position: sticky; top: calc(var(--cap-h, 90px) + 18px); }
   #view {
     width: min(100%, max(220px, calc((100vh - 325px) * .8)));
     width: min(100%, max(220px, calc((100dvh - 325px) * .8)));

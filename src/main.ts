@@ -522,5 +522,11 @@ async function start(): Promise<void> {
 document.fonts.load('44px Jost').then(() => current() || drawView(), () => {});
 
 startTheme(byId<HTMLButtonElement>('themeSwitch'));
+
+// La vista previa se queda fija justo debajo de la cabecera, mida lo que mida.
+const cap = document.querySelector<HTMLElement>('.cap')!;
+new ResizeObserver(() => {
+  document.documentElement.style.setProperty('--cap-h', `${cap.offsetHeight}px`);
+}).observe(cap);
 startServiceWorker(() => autosave.flush());
 void start();
