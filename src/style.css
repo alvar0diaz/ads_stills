@@ -62,3 +62,14 @@ input[type="range"] { width: 100%; min-height: 44px; margin: 0; accent-color: va
 .errors { margin: 0; padding-left: 18px; color: var(--alert); font-size: .875rem; }
 .errors:empty { display: none; }
 .notice { border-left: 3px solid var(--accent); padding-left: 10px; font-size: .875rem; }
+header { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+header p:empty { display: none; }
+footer { text-align: center; }
+p:empty { display: none; }
+.update {
+  position: sticky; top: env(safe-area-inset-top); z-index: 2; display: flex; gap: 10px; align-items: center;
+  justify-content: space-between; background: var(--panel); border: 2px solid var(--accent); border-radius: 6px; padding: 10px;
+}
+#outputs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+#outputs li { display: flex; flex-direction: column; gap: 8px; }
+#outputs img { width: 100%; height: auto; aspect-ratio: 4 / 5; display: block; background: #fff; }

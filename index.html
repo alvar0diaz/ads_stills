@@ -5,12 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <title>ads_stills: marco y texto</title>
+  <meta name="theme-color" content="#e4e5e3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121413" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ads_stills">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
-<main>
+<main inert>
+  <div id="updateBox" class="update" role="status" hidden>
+    <p id="updateText">Hay una versión nueva. Tu borrador se conserva.</p>
+    <button type="button" id="update" class="primary">Actualizar</button>
+  </div>
   <header>
     <h1>Marco y texto para @ads_stills</h1>
     <p class="soft">Elige fotos, ajusta el marco y llévate la descripción lista.</p>
+    <button type="button" id="newPost">Nueva publicación</button>
+    <p id="draftStatus" class="soft" role="status"></p>
   </header>
 
   <section aria-labelledby="hPhotos">
@@ -64,6 +76,19 @@
     <button type="button" id="copy" class="primary">Copiar descripción</button>
     <p id="copyStatus" class="soft" role="status"></p>
   </section>
+
+  <section aria-labelledby="hSave">
+    <h2 id="hSave">Guardar</h2>
+    <button type="button" id="prepare" class="primary" disabled>Preparar fotos</button>
+    <p id="saveStatus" class="soft" role="status"></p>
+    <div id="results" class="stack" hidden>
+      <button type="button" id="shareAll"></button>
+      <button type="button" id="downloadAll"></button>
+      <ol id="outputs"></ol>
+    </div>
+  </section>
+
+  <footer class="soft"><span id="version"></span> <span id="offline"></span></footer>
 </main>
 <script type="module" src="/src/main.ts"></script>
 </body>

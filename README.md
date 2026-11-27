@@ -1,9 +1,10 @@
 # ads_stills: marco y texto
 
-Fase 1 (base): marco, descripción e interfaz mínima. Todavía no guarda ni comparte fotos, ni funciona sin conexión.
+PWA para preparar publicaciones: marco 4:5, descripción, guardar o compartir las imágenes y borrador en el dispositivo. Las fotos no se envían a ningún servidor.
 
+- Web: <https://alvar0diaz.github.io/ads_stills/>
 - Probar en el Mac: doble clic en `probar.command` (o `npm run dev`).
-- Pruebas: `npm test`. Con la app abierta, además: `/tests/browser.html` (lienzo, píxeles y EXIF).
-- Compilar: `npm run build`.
-
-Node está en `~/.local/node/bin`.
+- Pruebas: `npm test`. Con `npm run dev`, además: `/tests/browser.html` (lienzo, píxeles y EXIF).
+- Compilar y ver la versión con service worker: `npm run build && npm run preview`.
+- Publicar: cada envío a `main` pasa las pruebas y despliega en GitHub Pages.
+- Iconos: `python3 scripts/icons.py`.

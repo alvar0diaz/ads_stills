@@ -78,6 +78,16 @@ export class CaptionEditor {
     this.text = generated;
   }
 
+  snapshot(): { text: string; base: string | null } {
+    return { text: this.text, base: this.base };
+  }
+
+  restore(generated: string, saved: { text: string; base: string | null }): void {
+    this.generated = generated;
+    this.base = saved.base;
+    this.text = saved.base === null ? generated : saved.text;
+  }
+
   get edited(): boolean {
     return this.base !== null;
   }

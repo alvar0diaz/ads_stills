@@ -1,11 +1,15 @@
 import './style.css';
+import { Autosave } from './autosave';
 import { CaptionEditor, GX80_CAMERA, MONTHS, buildCaption, type CaptionData } from './caption';
 import { MAX_PHOTOS, admit, moveSelected, removeSelected, type Carousel } from './carousel';
+import { DraftStore, type DraftState } from './draft';
 import {
   MARGIN_MAX, MARGIN_MIN, MARGIN_STEP, canReframe, clampMargin, dragPosition, drawFrame,
   type FrameOptions,
 } from './frame';
-import { decode, loadPhoto, openError, type Photo } from './images';
+import { decode, fromDraftImage, loadPhoto, openError, toDraftImage, type Photo } from './images';
+import { startServiceWorker } from './pwa';
+import { createSavePanel } from './save-panel';
 import { recall, remember } from './settings';
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -23,7 +27,7 @@ const captionArea = byId<HTMLTextAreaElement>('caption');
 
 let carousel: Carousel<Photo> = { items: [], selected: 0 };
 /** Única foto descodificada a tamaño de trabajo: la que se está viendo. */
-let shown: { id: number; image: HTMLImageElement } | null = null;
+let shown: { id: string; image: HTMLImageElement } | null = null;
 
 const current = () => carousel.items[carousel.selected];
 const margin = () => clampMargin(Number(marginInput.value));
@@ -32,6 +36,14 @@ const optionsFor = (photo: Photo): FrameOptions => ({
   original: photo.original,
   position: photo.position,
 });
+
+const savePanel = createSavePanel({ photos: () => carousel.items, margin });
+
+/** Cambio en las fotos o el marco: lo preparado deja de valer. */
+function photosChanged(): void {
+  savePanel.invalidate();
+  autosave.schedule();
+}
 
 /* ---------- Vista previa y tira ---------- */
 
@@ -85,6 +97,7 @@ function renderStrip(): void {
       button.onclick = () => {
         carousel = { ...carousel, selected: i };
         render();
+        autosave.schedule();
       };
       return button;
     }),
@@ -123,6 +136,15 @@ const countText = () => {
 };
 
 let queue = Promise.resolve();
+/** Tandas de carga pendientes. */
+let loading = 0;
+
+function setLoading(step: 1 | -1): void {
+  loading += step;
+  savePanel.setBusy(loading > 0);
+  byId<HTMLButtonElement>('newPost').disabled = loading > 0;
+  byId<HTMLButtonElement>('update').disabled = loading > 0;
+}
 
 async function addFiles(files: File[]): Promise<void> {
   const { accepted, rejected } = admit(carousel.items.length, files);
@@ -136,6 +158,7 @@ async function addFiles(files: File[]): Promise<void> {
       const photo = await loadPhoto(file);
       carousel = { ...carousel, items: [...carousel.items, photo] };
       render();
+      photosChanged();
     } catch {
       const item = document.createElement('li');
       item.textContent = openError(file);
@@ -152,28 +175,35 @@ input('files').onchange = (event) => {
   const field = event.target as HTMLInputElement;
   const files = [...(field.files ?? [])];
   field.value = '';
-  if (files.length) queue = queue.then(() => addFiles(files));
+  if (!files.length) return;
+  setLoading(1);
+  queue = queue.then(() => addFiles(files)).finally(() => setLoading(-1));
 };
 
 byId('moveBefore').onclick = () => {
   carousel = moveSelected(carousel, -1);
   render();
+  photosChanged();
 };
 byId('moveAfter').onclick = () => {
   carousel = moveSelected(carousel, 1);
   render();
+  photosChanged();
 };
 byId('remove').onclick = () => {
   carousel = removeSelected(carousel);
   byId('loadStatus').textContent = countText();
   render();
+  photosChanged();
 };
 
 function setOriginal(original: boolean): void {
   const photo = current();
   if (!photo) return;
+  if (photo.original === original) return;
   photo.original = original;
   render();
+  photosChanged();
 }
 byId('fitCrop').onclick = () => setOriginal(false);
 byId('fitOriginal').onclick = () => setOriginal(true);
@@ -185,6 +215,7 @@ positionInput.oninput = () => {
   if (!photo) return;
   photo.position = Number(positionInput.value) / 100;
   drawView();
+  photosChanged();
 };
 positionInput.onchange = renderStrip;
 
@@ -199,15 +230,18 @@ view.onpointerdown = (event) => {
 view.onpointermove = (event) => {
   const photo = current();
   if (!drag || !photo || event.pointerId !== drag.pointer) return;
-  photo.position = dragPosition(
+  const position = dragPosition(
     photo.thumb,
     view.clientWidth,
     { ...optionsFor(photo), position: drag.position },
     event.clientX - drag.x,
     event.clientY - drag.y,
   );
+  if (position === photo.position) return;
+  photo.position = position;
   positionInput.value = String(Math.round(photo.position * 100));
   drawView();
+  photosChanged();
 };
 view.onpointerup = view.onpointercancel = (event) => {
   if (!drag || event.pointerId !== drag.pointer) return;
@@ -223,6 +257,7 @@ marginInput.value = String(clampMargin(storedMargin === null ? NaN : Number(stor
 marginInput.oninput = () => {
   remember('margin', marginInput.value);
   render();
+  savePanel.invalidate();
 };
 
 /* ---------- Descripción ---------- */
@@ -231,10 +266,23 @@ monthSelect.replaceChildren(
   new Option('Sin mes', '0'),
   ...MONTHS.map((name, i) => new Option(name, String(i + 1))),
 );
-const now = new Date();
-monthSelect.value = String(now.getMonth() + 1);
-input('year').value = String(now.getFullYear());
-input('camera').value = recall('camera') ?? '';
+
+/** Campos de una publicación nueva; la cámara se recuerda. */
+function emptyFields(): CaptionData {
+  const now = new Date();
+  return {
+    phrase: '', city: '', country: 'España', month: now.getMonth() + 1, year: String(now.getFullYear()),
+    camera: recall('camera') ?? '', placeTag: '', extraTags: '',
+  };
+}
+
+const TEXT_FIELDS = ['phrase', 'city', 'country', 'year', 'camera', 'placeTag', 'extraTags'] as const;
+
+function writeFields(data: CaptionData): void {
+  for (const id of TEXT_FIELDS) input(id).value = data[id];
+  monthSelect.value = String(data.month);
+}
+writeFields(emptyFields());
 
 const readData = (): CaptionData => ({
   phrase: input('phrase').value,
@@ -260,9 +308,10 @@ function dataChanged(): void {
   editor.update(buildCaption(readData()));
   byId('copyStatus').textContent = '';
   renderCaption();
+  autosave.schedule();
 }
 
-for (const id of ['phrase', 'city', 'country', 'year', 'camera', 'placeTag', 'extraTags']) {
+for (const id of TEXT_FIELDS) {
   input(id).addEventListener('input', dataChanged);
 }
 monthSelect.addEventListener('change', dataChanged);
@@ -278,11 +327,13 @@ captionArea.oninput = () => {
   editor.edit(captionArea.value);
   byId('copyStatus').textContent = '';
   renderCaption();
+  autosave.schedule();
 };
 byId('regenerate').onclick = () => {
   editor.regenerate();
   byId('copyStatus').textContent = 'Descripción regenerada.';
   renderCaption();
+  autosave.schedule();
 };
 byId('copy').onclick = async () => {
   const status = byId('copyStatus');
@@ -296,5 +347,102 @@ byId('copy').onclick = async () => {
   }
 };
 
-render();
-renderCaption();
+/* ---------- Borrador ---------- */
+
+const store = new DraftStore();
+/** Falso hasta haber leído el borrador: así nunca se pisa sin querer. */
+let canSave = false;
+
+const draftState = (): DraftState => ({
+  photos: carousel.items.map(({ id, name, original, position }) => ({ id, name, original, position })),
+  selected: carousel.selected,
+  fields: readData(),
+  caption: editor.snapshot(),
+});
+
+const autosave = new Autosave(
+  async () => {
+    if (!canSave) throw new Error('Borrador no disponible');
+    const items = carousel.items;
+    await store.save(draftState(), (id) => toDraftImage(items.find((p) => p.id === id)!));
+  },
+  (ok) => {
+    byId('draftStatus').textContent = ok
+      ? ''
+      : 'No se está guardando el borrador (puede faltar espacio). Si cierras la app, se perderá.';
+  },
+);
+
+/** Devuelve cuántas fotos del borrador no se han podido abrir. */
+async function restoreDraft(): Promise<number> {
+  const draft = await store.load();
+  if (!draft) return 0;
+  const photos: Photo[] = [];
+  let lost = 0;
+  for (const saved of draft.state.photos) {
+    const image = draft.images.get(saved.id);
+    try {
+      if (!image) throw new Error('sin imagen');
+      photos.push(await fromDraftImage(saved, image));
+    } catch {
+      lost++;
+    }
+  }
+  carousel = {
+    items: photos,
+    selected: Math.max(0, Math.min(draft.state.selected, photos.length - 1)),
+  };
+  writeFields(draft.state.fields);
+  editor.restore(buildCaption(readData()), draft.state.caption);
+  if (photos.length) byId('loadStatus').textContent = countText();
+  return lost;
+}
+
+byId('newPost').onclick = async () => {
+  if (!confirm('¿Empezar una publicación nueva? Se borran las fotos y los textos actuales.')) return;
+  carousel = { items: [], selected: 0 };
+  writeFields(emptyFields());
+  editor.restore(buildCaption(readData()), { text: '', base: null });
+  byId('loadErrors').replaceChildren();
+  byId('loadStatus').textContent = 'Puedes elegir hasta 20. Se ordenan como irán en el carrusel.';
+  byId('copyStatus').textContent = '';
+  render();
+  renderCaption();
+  savePanel.invalidate();
+  // También sirve para salir de un borrador que no se pudo leer.
+  canSave = true;
+  await autosave.flush();
+  window.scrollTo({ top: 0 });
+};
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && canSave) void autosave.flush();
+});
+window.addEventListener('pagehide', () => {
+  if (canSave) void autosave.flush();
+});
+
+async function start(): Promise<void> {
+  try {
+    const lost = await restoreDraft();
+    // Si falta alguna, no se guarda: se borraría del borrador y quizá el fallo sea pasajero.
+    canSave = lost === 0;
+    if (lost) {
+      byId('draftStatus').textContent =
+        `Fotos del borrador sin recuperar: ${lost}. Cierra y vuelve a abrir la app, o pulsa «Nueva publicación». Mientras tanto no se guarda nada.`;
+    }
+  } catch (error) {
+    console.error(error);
+    byId('draftStatus').textContent =
+      'No se pudo leer el borrador. No se guardará nada hasta que cierres y abras la app, o pulses «Nueva publicación».';
+  }
+  render();
+  renderCaption();
+  savePanel.invalidate();
+  document.querySelector('main')!.inert = false;
+  // Pide que el sistema no borre el borrador; puede denegarlo.
+  navigator.storage?.persist?.().catch(() => {});
+}
+
+startServiceWorker(() => autosave.flush());
+void start();
