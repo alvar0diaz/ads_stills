@@ -7,7 +7,7 @@ import { DraftStore, type DraftImage, type DraftState } from '../src/draft';
 const state = (ids: string[], text = 't'): DraftState => ({
   photos: ids.map((id) => ({ id, name: `${id}.jpg`, original: false, position: 0.2 })),
   selected: 0,
-  fields: { phrase: 'f', city: 'c', country: 'España', month: 3, year: '2026', camera: '', placeTag: '', extraTags: '' },
+  fields: { phrase: 'f', city: 'c', country: 'España', month: 3, year: '2026', camera: '', cameraTags: '', placeTag: '', extraTags: '' },
   caption: { text, base: null },
 });
 const image = async (id: string): Promise<DraftImage> => ({

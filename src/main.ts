@@ -1,7 +1,10 @@
 import './style.css';
 import { Autosave } from './autosave';
-import { CaptionEditor, GX80_CAMERA, MONTHS, buildCaption, type CaptionData } from './caption';
+import { createCameraPanel } from './camera-panel';
+import { suggestedTags } from './cameras';
+import { CaptionEditor, MONTHS, buildCaption, type CaptionData } from './caption';
 import { MAX_PHOTOS, admit, moveSelected, removeSelected, type Carousel } from './carousel';
+import { develop, elapsed, markFresh } from './develop';
 import { DraftStore, type DraftState } from './draft';
 import { createDropZone } from './dropzone';
 import {
@@ -39,7 +42,11 @@ const optionsFor = (photo: Photo): FrameOptions => ({
   position: photo.position,
 });
 
-const savePanel = createSavePanel({ photos: () => carousel.items, margin });
+const savePanel = createSavePanel({
+  photos: () => carousel.items,
+  margin,
+  caption: () => captionArea.value,
+});
 
 /** Cambio en las fotos o el marco: lo preparado deja de valer. */
 function photosChanged(): void {
@@ -58,8 +65,21 @@ function drawPlaceholder(text: string): void {
   context.fillText(text, view.width / 2, view.height / 2);
 }
 
+/** Foto cuyo revelado está puesto en la vista grande. */
+let developingView: string | null = null;
+view.addEventListener('animationend', () => develop(view, null));
+
+function developView(id: string | null): void {
+  if (id === developingView) return;
+  developingView = id;
+  develop(view, null);
+  void view.offsetWidth; // reinicia la animación
+  if (id) develop(view, elapsed(id));
+}
+
 function drawView(): void {
   const photo = current();
+  developView(photo?.id ?? null);
   if (!photo) {
     shown = null;
     drawPlaceholder('Aquí verás tu foto con el marco');
@@ -98,6 +118,7 @@ function renderStrip(): void {
       canvas.width = 120;
       canvas.height = 150;
       drawFrame(canvas, photo.thumb, optionsFor(photo));
+      develop(canvas, elapsed(photo.id));
       button.append(canvas);
       button.onclick = () => selectPhoto(i);
       return button;
@@ -133,6 +154,9 @@ function render(): void {
   const photo = current();
   byId('marginOut').textContent = `${String(margin()).replace('.', ',')} % del ancho`;
   byId('tools').hidden = !photo;
+  byId('counter').hidden = !photo;
+  const two = (n: number) => String(n).padStart(2, '0');
+  byId('counter').textContent = `${two(carousel.selected + 1)} / ${two(carousel.items.length)}`;
   drawView();
   renderStrip();
   renderReframe();
@@ -171,6 +195,7 @@ async function addFiles(files: File[]): Promise<void> {
     status.textContent = `Cargando ${i + 1} de ${accepted.length}…`;
     try {
       const photo = await loadPhoto(file);
+      markFresh(photo.id);
       carousel = { ...carousel, items: [...carousel.items, photo] };
       render();
       photosChanged();
@@ -318,20 +343,23 @@ monthSelect.replaceChildren(
   ...MONTHS.map((name, i) => new Option(name, String(i + 1))),
 );
 
-/** Campos de una publicación nueva; la cámara se recuerda. */
+const cameraPanel = createCameraPanel(() => dataChanged());
+
+/** Campos de una publicación nueva, con la cámara predeterminada. */
 function emptyFields(): CaptionData {
   const now = new Date();
   return {
     phrase: '', city: '', country: 'España', month: now.getMonth() + 1, year: String(now.getFullYear()),
-    camera: recall('camera') ?? '', placeTag: '', extraTags: '',
+    ...cameraPanel.initial(), placeTag: '', extraTags: '',
   };
 }
 
-const TEXT_FIELDS = ['phrase', 'city', 'country', 'year', 'camera', 'placeTag', 'extraTags'] as const;
+const TEXT_FIELDS = ['phrase', 'city', 'country', 'year', 'placeTag', 'extraTags'] as const;
 
 function writeFields(data: CaptionData): void {
   for (const id of TEXT_FIELDS) input(id).value = data[id];
   monthSelect.value = String(data.month);
+  cameraPanel.write(data);
 }
 writeFields(emptyFields());
 
@@ -341,7 +369,7 @@ const readData = (): CaptionData => ({
   country: input('country').value,
   month: Number(monthSelect.value),
   year: input('year').value,
-  camera: input('camera').value,
+  ...cameraPanel.read(),
   placeTag: input('placeTag').value,
   extraTags: input('extraTags').value,
 });
@@ -366,14 +394,6 @@ for (const id of TEXT_FIELDS) {
   input(id).addEventListener('input', dataChanged);
 }
 monthSelect.addEventListener('change', dataChanged);
-input('camera').addEventListener('input', () => remember('camera', input('camera').value));
-
-byId('gx80').onclick = () => {
-  input('camera').value = GX80_CAMERA;
-  remember('camera', GX80_CAMERA);
-  dataChanged();
-};
-
 captionArea.oninput = () => {
   editor.edit(captionArea.value);
   byId('copyStatus').textContent = '';
@@ -443,7 +463,9 @@ async function restoreDraft(): Promise<number> {
     items: photos,
     selected: Math.max(0, Math.min(draft.state.selected, photos.length - 1)),
   };
-  writeFields(draft.state.fields);
+  const { fields } = draft.state;
+  // Los borradores antiguos no guardaban las etiquetas de la cámara.
+  writeFields({ ...fields, cameraTags: fields.cameraTags ?? suggestedTags(fields.camera) });
   editor.restore(buildCaption(readData()), draft.state.caption);
   if (photos.length) byId('loadStatus').textContent = countText();
   return lost;

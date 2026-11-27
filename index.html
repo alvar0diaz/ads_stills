@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="dark">
   <title>ads_stills: marco y texto</title>
-  <meta name="theme-color" content="#e4e5e3" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#121413" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#161616">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="ads_stills">
   <link rel="icon" type="image/png" href="/icon-192.png">
@@ -19,10 +18,15 @@
     <button type="button" id="update" class="primary">Actualizar</button>
   </div>
   <header>
-    <h1>Marco y texto para @ads_stills</h1>
-    <p class="soft">Elige fotos, ajusta el marco y llévate la descripción lista.</p>
+    <div class="brand">
+      <h1>@ads_stills</h1>
+      <p class="soft">Marco y texto</p>
+    </div>
+    <div class="ornaments" aria-hidden="true">
+      <span class="dial"></span><span class="lamp"></span><span class="flash"></span><span class="finder"></span>
+    </div>
     <button type="button" id="newPost">Nueva publicación</button>
-    <p id="draftStatus" class="soft" role="status"></p>
+    <p id="draftStatus" role="status"></p>
   </header>
 
   <div class="columns">
@@ -36,6 +40,7 @@
 
   <section class="stage" aria-label="Vista previa y orden">
     <canvas id="view" width="1080" height="1350" tabindex="0" role="img" aria-label="Vista previa de la foto con marco. Las flechas cambian el encuadre."></canvas>
+    <p id="counter" class="counter" hidden></p>
     <div id="strip" class="strip" role="group" aria-label="Orden del carrusel" hidden></div>
   </section>
 
@@ -70,8 +75,9 @@
       <label>Mes de la foto<select id="month"></select></label>
       <label>Año<input id="year" type="text" inputmode="numeric" maxlength="4"></label>
     </div>
-    <label>Cámara<input id="camera" type="text" placeholder="Tu cámara"></label>
-    <button type="button" id="gx80">Foto hecha con la Lumix GX80</button>
+    <label>Cámara<select id="cameraSelect"></select></label>
+    <label id="otherCamera" hidden>Nombre de la cámara<input id="camera" type="text"></label>
+    <button type="button" id="manageCameras">Mis cámaras</button>
     <label>Etiqueta del lugar<input id="placeTag" type="text" autocapitalize="none" placeholder="Se genera con la ciudad"></label>
     <label>Otras etiquetas<input id="extraTags" type="text" autocapitalize="none" placeholder="summer"></label>
   </section>
@@ -90,10 +96,31 @@
   <section aria-labelledby="hSave">
     <h2 id="hSave">Guardar</h2>
     <button type="button" id="prepare" class="primary" disabled>Preparar fotos</button>
+    <progress id="progress" max="1" value="0" aria-label="Preparando las fotos" hidden></progress>
     <p id="saveStatus" class="soft" role="status"></p>
     <div id="results" class="stack" hidden>
       <button type="button" id="shareAll"></button>
       <button type="button" id="downloadAll"></button>
+      <div class="stack instagram">
+        <h3>Instagram</h3>
+        <button type="button" id="toInstagram" class="primary">Enviar a Instagram</button>
+        <p id="instagramStatus" class="soft" role="status"></p>
+        <details>
+          <summary id="instagramSummary">Si Instagram no recibe todas las fotos</summary>
+          <ol id="phoneSteps">
+            <li>Pulsa «Guardar todas» y guarda las imágenes en Fotos.</li>
+            <li>Pulsa «Copiar descripción».</li>
+            <li>En Instagram, crea una publicación, activa la selección múltiple y elige las fotos en orden.</li>
+            <li>Comprueba que el formato es 4:5, pega la descripción y añade la música.</li>
+          </ol>
+          <ol id="desktopSteps" hidden>
+            <li>Pulsa «Descargar todas» y «Copiar descripción».</li>
+            <li>En instagram.com, crea una publicación y arrastra las fotos descargadas.</li>
+            <li>Elige el formato 4:5, revisa el orden y pega la descripción.</li>
+          </ol>
+        </details>
+        <a class="link-button" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Abrir Instagram</a>
+      </div>
       <ol id="outputs"></ol>
     </div>
   </section>
@@ -101,6 +128,21 @@
   <footer class="soft"><span id="version"></span> <span id="offline"></span></footer>
   </div>
 </main>
+<dialog id="cameraDialog" aria-labelledby="hCameras">
+  <h2 id="hCameras">Mis cámaras</h2>
+  <p class="soft">Marca la predeterminada: saldrá elegida en cada publicación nueva.</p>
+  <ul id="cameraList"></ul>
+  <form id="cameraForm" class="stack">
+    <label>Nombre de la cámara<input id="cameraName" type="text" autocomplete="off"></label>
+    <label>Etiquetas de esta cámara (opcional)<input id="cameraTags" type="text" autocapitalize="none" autocomplete="off"></label>
+    <div class="row">
+      <button type="submit" id="cameraSubmit" class="primary">Añadir cámara</button>
+      <button type="button" id="cameraCancel" hidden>Cancelar edición</button>
+    </div>
+  </form>
+  <p id="cameraMessage" class="soft" role="status"></p>
+  <button type="button" id="cameraClose">Cerrar</button>
+</dialog>
 <div id="dropOverlay" class="drop-overlay" aria-hidden="true" hidden><p>Suelta las fotos</p></div>
 <script type="module" src="/src/main.ts"></script>
 </body>

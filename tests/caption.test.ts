@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { CaptionEditor, buildCaption, buildTags, isGX80, slug, type CaptionData } from '../src/caption';
+import { CaptionEditor, buildCaption, buildTags, slug, type CaptionData } from '../src/caption';
 
 const data = (extra: Partial<CaptionData> = {}): CaptionData => ({
-  phrase: '', city: '', country: 'España', month: 0, year: '2026', camera: '', placeTag: '', extraTags: '', ...extra,
+  phrase: '', city: '', country: 'España', month: 0, year: '2026', camera: '', cameraTags: '', placeTag: '', extraTags: '', ...extra,
 });
 
 describe('etiquetas', () => {
   it('GX80 + Conil de la Frontera + conil + summer', () => {
-    const d = data({ camera: 'Lumix GX80', city: 'Conil de la Frontera', placeTag: 'conil', extraTags: 'summer' });
+    const d = data({ camera: 'Lumix GX80', cameraTags: 'microfourthirds lumixgx80', city: 'Conil de la Frontera', placeTag: 'conil', extraTags: 'summer' });
     expect(buildTags(d).join(' ')).toBe('#streetphotography #microfourthirds #lumixgx80 #conil #summer');
   });
   it('otra cámara + Salamanca', () => {
@@ -21,9 +21,9 @@ describe('etiquetas', () => {
     expect(buildTags(d)).toEqual(['#streetphotography', '#conil', '#summer']);
   });
   it('slug', () => expect(slug(' Peñíscola 2 ')).toBe('peniscola2'));
-  it('reconoce la GX80 y no la GX800', () => {
-    for (const c of ['GX80', 'Lumix GX80', 'gx 80', 'Panasonic GX-80']) expect(isGX80(c)).toBe(true);
-    for (const c of ['GX800', 'GX85', 'X100VI', '']) expect(isGX80(c)).toBe(false);
+  it('solo usa las etiquetas de la cámara si hay cámara', () => {
+    expect(buildTags(data({ cameraTags: 'x100' }))).toEqual(['#streetphotography']);
+    expect(buildTags(data({ camera: 'X', cameraTags: '#Uno, dos' }))).toEqual(['#streetphotography', '#uno', '#dos']);
   });
 });
 

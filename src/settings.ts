@@ -1,6 +1,8 @@
 /** Ajustes recordados. Si el almacenamiento falla, la app sigue funcionando. */
 
-export function recall(key: 'margin' | 'camera'): string | null {
+type Key = 'margin' | 'cameras' | 'camera';
+
+export function recall(key: Key): string | null {
   try {
     return localStorage.getItem(`ads_stills.${key}`);
   } catch {
@@ -8,7 +10,7 @@ export function recall(key: 'margin' | 'camera'): string | null {
   }
 }
 
-export function remember(key: 'margin' | 'camera', value: string): void {
+export function remember(key: Key, value: string): void {
   try {
     localStorage.setItem(`ads_stills.${key}`, value);
   } catch {

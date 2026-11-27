@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { canShareFiles, fileName, prefersShare, shareFiles, toFiles } from '../src/share';
+import { canShareFiles, fileName, prefersShare, sendToInstagram, shareFiles, toFiles } from '../src/share';
 
 const nav = (extra: object = {}) => ({ userAgent: '', maxTouchPoints: 0, ...extra });
 const files = toFiles([new Blob(['a']), new Blob(['b'])], 10_000);
@@ -40,5 +40,23 @@ describe('compartir', () => {
     expect(await shareFiles(files, failing('NotAllowedError'))).toMatchObject({ status: 'failed' });
     const other = await shareFiles(files, failing('DataError'));
     expect(other.status === 'failed' && other.message).toContain('DataError');
+  });
+});
+
+describe('Instagram', () => {
+  it('copia la descripción y comparte en el mismo toque', async () => {
+    const calls: string[] = [];
+    const result = sendToInstagram(files, 'texto', nav({
+      clipboard: { writeText: async (t: string) => void calls.push(`copiar ${t}`) },
+      share: async () => void calls.push('compartir'),
+    }));
+    expect(calls).toEqual(['copiar texto', 'compartir']);
+    expect(await result.copied).toBe(true);
+    expect(await result.shared).toEqual({ status: 'shared' });
+  });
+  it('comparte aunque no se pueda copiar', async () => {
+    const result = sendToInstagram(files, 't', nav({ share: async () => {} }));
+    expect(await result.copied).toBe(false);
+    expect(await result.shared).toEqual({ status: 'shared' });
   });
 });

@@ -5,8 +5,6 @@ export const MONTHS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ] as const;
 
-export const GX80_CAMERA = 'Lumix GX80';
-
 export interface CaptionData {
   phrase: string;
   city: string;
@@ -15,6 +13,8 @@ export interface CaptionData {
   month: number;
   year: string;
   camera: string;
+  /** Etiquetas de la cámara elegida. */
+  cameraTags: string;
   placeTag: string;
   extraTags: string;
 }
@@ -28,17 +28,15 @@ export function slug(text: string): string {
     .replace(/[^a-z0-9_]/g, '');
 }
 
-/** La GX800 es otra cámara: no debe contar. */
-export function isGX80(camera: string): boolean {
-  return /gx[\s-]?80(?!\d)/i.test(camera);
-}
+/** Texto libre («#a, b c») convertido en etiquetas. */
+const splitTags = (text: string) => text.split(/[\s,;#]+/).map(slug);
 
 export function buildTags(data: CaptionData): string[] {
   const tags = [
     'streetphotography',
-    ...(isGX80(data.camera) ? ['microfourthirds', 'lumixgx80'] : []),
+    ...(data.camera.trim() ? splitTags(data.cameraTags) : []),
     slug(data.placeTag) || slug(data.city),
-    ...data.extraTags.split(/[\s,;#]+/).map(slug),
+    ...splitTags(data.extraTags),
   ];
   return [...new Set(tags.filter(Boolean))].map((tag) => `#${tag}`);
 }
