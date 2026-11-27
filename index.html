@@ -25,14 +25,23 @@
     <p id="draftStatus" class="soft" role="status"></p>
   </header>
 
+  <div class="columns">
   <section aria-labelledby="hPhotos">
     <h2 id="hPhotos">Fotos</h2>
     <label class="pick primary">Elegir fotos<input id="files" type="file" accept="image/*,.heic,.heif" multiple></label>
     <p id="loadStatus" class="soft" role="status">Puedes elegir hasta 20. Se ordenan como irán en el carrusel.</p>
+    <p class="soft drop-hint">También puedes arrastrarlas a esta ventana.</p>
     <ul id="loadErrors" class="errors" role="alert"></ul>
-    <canvas id="view" width="1080" height="1350" tabindex="0" role="img" aria-label="Vista previa de la foto con marco"></canvas>
+  </section>
+
+  <section class="stage" aria-label="Vista previa y orden">
+    <canvas id="view" width="1080" height="1350" tabindex="0" role="img" aria-label="Vista previa de la foto con marco. Las flechas cambian el encuadre."></canvas>
+    <div id="strip" class="strip" role="group" aria-label="Orden del carrusel" hidden></div>
+  </section>
+
+  <section aria-labelledby="hFrame">
+    <h2 id="hFrame">Marco y orden</h2>
     <div id="tools" class="stack" hidden>
-      <div id="strip" class="strip" role="group" aria-label="Orden del carrusel"></div>
       <div class="row">
         <button type="button" id="moveBefore">Mover antes</button>
         <button type="button" id="moveAfter">Mover después</button>
@@ -43,6 +52,7 @@
         <button type="button" id="fitOriginal" class="toggle">Sin recorte</button>
       </div>
       <label id="positionField">Encuadre (también puedes arrastrar la foto)<input id="position" type="range" min="0" max="100" value="50"></label>
+      <p class="soft keys-hint">Teclado: en las miniaturas, ← → cambian de foto, ⌥ ← → la mueven y Suprimir la quita. En la foto grande, las flechas ajustan el encuadre (con ⇧, más rápido).</p>
     </div>
     <label><span>Grosor del marco: <output id="marginOut"></output></span><input id="margin" type="range"></label>
   </section>
@@ -89,7 +99,9 @@
   </section>
 
   <footer class="soft"><span id="version"></span> <span id="offline"></span></footer>
+  </div>
 </main>
+<div id="dropOverlay" class="drop-overlay" aria-hidden="true" hidden><p>Suelta las fotos</p></div>
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

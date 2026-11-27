@@ -3,11 +3,13 @@ import { Autosave } from './autosave';
 import { CaptionEditor, GX80_CAMERA, MONTHS, buildCaption, type CaptionData } from './caption';
 import { MAX_PHOTOS, admit, moveSelected, removeSelected, type Carousel } from './carousel';
 import { DraftStore, type DraftState } from './draft';
+import { createDropZone } from './dropzone';
 import {
   MARGIN_MAX, MARGIN_MIN, MARGIN_STEP, canReframe, clampMargin, dragPosition, drawFrame,
   type FrameOptions,
 } from './frame';
 import { decode, fromDraftImage, loadPhoto, openError, toDraftImage, type Photo } from './images';
+import { reframeKey, stripAction } from './keys';
 import { startServiceWorker } from './pwa';
 import { createSavePanel } from './save-panel';
 import { recall, remember } from './settings';
@@ -83,6 +85,7 @@ function renderStrip(): void {
   const strip = byId('strip');
   const scroll = strip.scrollLeft;
   const hadFocus = strip.contains(document.activeElement);
+  strip.hidden = !carousel.items.length;
   strip.replaceChildren(
     ...carousel.items.map((photo, i) => {
       const button = document.createElement('button');
@@ -90,20 +93,32 @@ function renderStrip(): void {
       button.type = 'button';
       button.setAttribute('aria-label', `Foto ${i + 1}: ${photo.name}`);
       button.setAttribute('aria-pressed', String(i === carousel.selected));
+      // Un solo alto en el tabulador: dentro de la tira se va con las flechas.
+      button.tabIndex = i === carousel.selected ? 0 : -1;
       canvas.width = 120;
       canvas.height = 150;
       drawFrame(canvas, photo.thumb, optionsFor(photo));
       button.append(canvas);
-      button.onclick = () => {
-        carousel = { ...carousel, selected: i };
-        render();
-        autosave.schedule();
-      };
+      button.onclick = () => selectPhoto(i);
       return button;
     }),
   );
   strip.scrollLeft = scroll;
-  if (hadFocus) (strip.children[carousel.selected] as HTMLElement | undefined)?.focus();
+  if (hadFocus) focusSelected();
+}
+
+function focusSelected(): void {
+  const button = byId('strip').children[carousel.selected] as HTMLElement | undefined;
+  button?.focus({ preventScroll: true });
+  button?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function selectPhoto(index: number): void {
+  carousel = { ...carousel, selected: index };
+  render();
+  // Safari no da el foco a un botón al pulsarlo y el teclado no respondería.
+  focusSelected();
+  autosave.schedule();
 }
 
 function renderReframe(): void {
@@ -171,30 +186,52 @@ async function addFiles(files: File[]): Promise<void> {
   status.textContent = countText() + over;
 }
 
+function enqueue(files: File[]): void {
+  if (!files.length) return;
+  setLoading(1);
+  queue = queue.then(() => addFiles(files)).finally(() => setLoading(-1));
+}
+
 input('files').onchange = (event) => {
   const field = event.target as HTMLInputElement;
   const files = [...(field.files ?? [])];
   field.value = '';
-  if (!files.length) return;
-  setLoading(1);
-  queue = queue.then(() => addFiles(files)).finally(() => setLoading(-1));
+  enqueue(files);
 };
 
-byId('moveBefore').onclick = () => {
-  carousel = moveSelected(carousel, -1);
+// Mientras se recupera el borrador la página está inactiva y no admite fotos.
+createDropZone(byId('dropOverlay'), (files) => {
+  if (!document.querySelector('main')!.inert) enqueue(files);
+});
+
+function move(step: -1 | 1): void {
+  const next = moveSelected(carousel, step);
+  if (next === carousel) return;
+  carousel = next;
   render();
   photosChanged();
-};
-byId('moveAfter').onclick = () => {
-  carousel = moveSelected(carousel, 1);
-  render();
-  photosChanged();
-};
-byId('remove').onclick = () => {
+}
+
+function remove(): void {
+  if (!current()) return;
   carousel = removeSelected(carousel);
   byId('loadStatus').textContent = countText();
   render();
   photosChanged();
+}
+
+byId('moveBefore').onclick = () => move(-1);
+byId('moveAfter').onclick = () => move(1);
+byId('remove').onclick = remove;
+
+byId('strip').onkeydown = (event) => {
+  const action = stripAction(event, carousel.selected, carousel.items.length);
+  if (!action) return;
+  event.preventDefault();
+  if (action.type === 'select') selectPhoto(action.index);
+  else if (action.type === 'move') move(action.step);
+  else remove();
+  focusSelected();
 };
 
 function setOriginal(original: boolean): void {
@@ -243,6 +280,20 @@ view.onpointermove = (event) => {
   drawView();
   photosChanged();
 };
+view.onkeydown = (event) => {
+  const photo = current();
+  if (!photo || !view.classList.contains('draggable')) return;
+  const position = reframeKey(event, photo.position);
+  if (position === null) return;
+  event.preventDefault();
+  if (position === photo.position) return;
+  photo.position = position;
+  positionInput.value = String(Math.round(position * 100));
+  drawView();
+  renderStrip();
+  photosChanged();
+};
+
 view.onpointerup = view.onpointercancel = (event) => {
   if (!drag || event.pointerId !== drag.pointer) return;
   drag = null;
