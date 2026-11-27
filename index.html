@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es-ES">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>ads_stills: marco y texto</title>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Marco y texto para @ads_stills</h1>
+    <p class="soft">Elige fotos, ajusta el marco y llévate la descripción lista.</p>
+  </header>
+
+  <section aria-labelledby="hPhotos">
+    <h2 id="hPhotos">Fotos</h2>
+    <label class="pick primary">Elegir fotos<input id="files" type="file" accept="image/*,.heic,.heif" multiple></label>
+    <p id="loadStatus" class="soft" role="status">Puedes elegir hasta 20. Se ordenan como irán en el carrusel.</p>
+    <ul id="loadErrors" class="errors" role="alert"></ul>
+    <canvas id="view" width="1080" height="1350" tabindex="0" role="img" aria-label="Vista previa de la foto con marco"></canvas>
+    <div id="tools" class="stack" hidden>
+      <div id="strip" class="strip" role="group" aria-label="Orden del carrusel"></div>
+      <div class="row">
+        <button type="button" id="moveBefore">Mover antes</button>
+        <button type="button" id="moveAfter">Mover después</button>
+        <button type="button" id="remove">Quitar</button>
+      </div>
+      <div class="row">
+        <button type="button" id="fitCrop" class="toggle">Mi formato</button>
+        <button type="button" id="fitOriginal" class="toggle">Sin recorte</button>
+      </div>
+      <label id="positionField">Encuadre (también puedes arrastrar la foto)<input id="position" type="range" min="0" max="100" value="50"></label>
+    </div>
+    <label><span>Grosor del marco: <output id="marginOut"></output></span><input id="margin" type="range"></label>
+  </section>
+
+  <section aria-labelledby="hPhrase">
+    <h2 id="hPhrase">Frase</h2>
+    <label>Tu frase<input id="phrase" type="text" placeholder="Si miras hacia arriba…"></label>
+  </section>
+
+  <section aria-labelledby="hData">
+    <h2 id="hData">Datos de la publicación</h2>
+    <div class="grid">
+      <label>Ciudad<input id="city" type="text" placeholder="Salamanca"></label>
+      <label>País<input id="country" type="text" value="España"></label>
+      <label>Mes de la foto<select id="month"></select></label>
+      <label>Año<input id="year" type="text" inputmode="numeric" maxlength="4"></label>
+    </div>
+    <label>Cámara<input id="camera" type="text" placeholder="Tu cámara"></label>
+    <button type="button" id="gx80">Foto hecha con la Lumix GX80</button>
+    <label>Etiqueta del lugar<input id="placeTag" type="text" autocapitalize="none" placeholder="Se genera con la ciudad"></label>
+    <label>Otras etiquetas<input id="extraTags" type="text" autocapitalize="none" placeholder="summer"></label>
+  </section>
+
+  <section aria-labelledby="hCaption">
+    <h2 id="hCaption">Descripción</h2>
+    <label>Texto final (puedes retocarlo)<textarea id="caption" rows="13"></textarea></label>
+    <div id="staleBox" class="notice" role="status" hidden>
+      <p>Has cambiado datos después de retocar el texto. Se mantiene el tuyo; «Regenerar» lo sustituye.</p>
+    </div>
+    <button type="button" id="regenerate" hidden>Regenerar</button>
+    <button type="button" id="copy" class="primary">Copiar descripción</button>
+    <p id="copyStatus" class="soft" role="status"></p>
+  </section>
+</main>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
