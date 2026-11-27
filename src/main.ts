@@ -9,6 +9,7 @@ import { suggestedTags } from './cameras';
 import { CaptionEditor, MONTHS, buildCaption, type CaptionData } from './caption';
 import { MAX_PHOTOS, admit, moveSelected, removeSelected, type Carousel } from './carousel';
 import { develop, elapsed, markFresh } from './develop';
+import { advanceFilm, measure, pilotLamp, setCounter, sheen, shutter, slideFrom } from './motion';
 import { DraftStore, type DraftState } from './draft';
 import { createDropZone } from './dropzone';
 import {
@@ -112,6 +113,7 @@ function renderStrip(): void {
       const button = document.createElement('button');
       const canvas = document.createElement('canvas');
       button.type = 'button';
+      button.dataset.id = photo.id;
       button.setAttribute('aria-label', `Foto ${i + 1}: ${photo.name}`);
       button.setAttribute('aria-pressed', String(i === carousel.selected));
       // Un solo alto en el tabulador: dentro de la tira se va con las flechas.
@@ -136,8 +138,10 @@ function focusSelected(): void {
 }
 
 function selectPhoto(index: number): void {
+  const step = index - carousel.selected;
   carousel = { ...carousel, selected: index };
   render();
+  advanceFilm(byId('strip'), step);
   // Safari no da el foco a un botón al pulsarlo y el teclado no respondería.
   focusSelected();
   autosave.schedule();
@@ -157,7 +161,11 @@ function render(): void {
   byId('tools').hidden = !photo;
   byId('counter').hidden = !photo;
   const two = (n: number) => String(n).padStart(2, '0');
-  byId('counter').textContent = `${two(carousel.selected + 1)} / ${two(carousel.items.length)}`;
+  setCounter(
+    byId('counter'),
+    `${two(carousel.selected + 1)} / ${two(carousel.items.length)}`,
+    `Foto ${carousel.selected + 1} de ${carousel.items.length}`,
+  );
   drawView();
   renderStrip();
   renderReframe();
@@ -233,8 +241,10 @@ createDropZone(byId('dropOverlay'), (files) => {
 function move(step: -1 | 1): void {
   const next = moveSelected(carousel, step);
   if (next === carousel) return;
+  const places = measure(byId('strip'));
   carousel = next;
   render();
+  slideFrom(byId('strip'), places);
   photosChanged();
 }
 
@@ -432,6 +442,7 @@ const draftState = (): DraftState => ({
   caption: editor.snapshot(),
 });
 
+const lamp = pilotLamp(document.querySelector<HTMLElement>('.lamp'));
 const autosave = new Autosave(
   async () => {
     if (!canSave) throw new Error('Borrador no disponible');
@@ -439,11 +450,13 @@ const autosave = new Autosave(
     await store.save(draftState(), (id) => toDraftImage(items.find((p) => p.id === id)!));
   },
   (ok) => {
+    lamp.done(ok);
     byId('draftStatus').textContent = ok
       ? ''
       : 'No se está guardando el borrador (puede faltar espacio). Si cierras la app, se perderá.';
   },
 );
+autosave.onPending = () => lamp.busy();
 
 /** Devuelve cuántas fotos del borrador no se han podido abrir. */
 async function restoreDraft(): Promise<number> {
@@ -522,6 +535,8 @@ async function start(): Promise<void> {
 document.fonts.load('44px Jost').then(() => current() || drawView(), () => {});
 
 startTheme(byId<HTMLButtonElement>('themeSwitch'));
+byId('themeSwitch').addEventListener('click', () => sheen(document.querySelector('header')!));
+byId('prepare').addEventListener('click', () => shutter(view));
 
 // La vista previa se queda fija justo debajo de la cabecera, mida lo que mida.
 const cap = document.querySelector<HTMLElement>('.cap')!;
